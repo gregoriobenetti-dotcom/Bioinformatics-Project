@@ -1,0 +1,70 @@
+#' Classify laboratory results as normal or out of range
+#'
+#' This function compares measured lab values to reference ranges to classify
+#' each result as either \code{"normal"} or \code{"out_of_range"}. It uses
+#' efficient non-equi joins in \pkg{data.table} to match each measurement to its
+#' correct reference interval and then summarizes the proportion of abnormal
+#' results by patient and by lab test.
+#'
+#' @param labs A `data.table` of lab measurements with columns:
+#'   \describe{
+#'     \item{patient_id}{Character or factor: patient identifier.}
+#'     \item{lab}{Character: name of the laboratory test.}
+#'     \item{value}{Numeric: observed measurement value.}
+#'   }
+#' @param ranges A `data.table` of reference intervals with columns:
+#'   \describe{
+#'     \item{lab}{Character: test name matching the \code{lab} column in `labs`.}
+#'     \item{lower}{Numeric: lower normal limit.}
+#'     \item{upper}{Numeric: upper normal limit.}
+#'   }
+#'
+#' @return A list containing three `data.table`s:
+#' \describe{
+#'   \item{classified}{The full table of lab results with a \code{status} column ("normal"/"out_of_range").}
+#'   \item{abnormal_rates_patient}{Abnormal result rates per patient.}
+#'   \item{abnormal_rates_lab}{Abnormal result rates per lab test.}
+#' }
+#'
+#' @examples
+#' library(data.table)
+#' labs <- data.table(
+#'   patient_id = c("P1","P1","P2","P2"),
+#'   lab = c("CRP","GLUCOSE","CRP","GLUCOSE"),
+#'   value = c(5, 200, 20, 110)
+#' )
+#' ranges <- data.table(
+#'   lab = c("CRP","GLUCOSE"),
+#'   lower = c(0, 70),
+#'   upper = c(10, 140)
+#' )
+#' result <- task5_classify_labs(labs, ranges)
+#' head(result$abnormal_rates_lab)
+#'
+#' @export
+task5_classify_labs <- function(labs, ranges) {
+  
+  # ---- 1️⃣ Standardize column names ----
+  setnames(labs, tolower(trimws(names(labs))))
+  setnames(ranges, tolower(trimws(names(ranges))))
+  
+  # ---- 2️⃣ Non-equi join: classify results ----
+  setkey(ranges, lab)
+  classified <- ranges[labs, on = .(lab, lower <= value, upper >= value), nomatch = 0L]
+  classified[, status := ifelse(!is.na(lower), "normal", "out_of_range")]
+  
+  # ---- 3️⃣ Merge back missing values (fill as out_of_range) ----
+  out_all <- merge(labs, classified, all.x = TRUE)
+  out_all[is.na(status), status := "out_of_range"]
+  
+  # ---- 4️⃣ Summarize abnormal result rates ----
+  abnormal_rates_patient <- out_all[, .(abnormal_rate = mean(status == "out_of_range")), by = patient_id]
+  abnormal_rates_lab     <- out_all[, .(abnormal_rate = mean(status == "out_of_range")), by = lab]
+  
+  # ---- 5️⃣ Return results ----
+  list(
+    classified = out_all,
+    abnormal_rates_patient = abnormal_rates_patient,
+    abnormal_rates_lab = abnormal_rates_lab
+  )
+}

@@ -1,0 +1,512 @@
+), by = gene]
+# ---- 3️⃣ Join metadata and compute per-condition mean counts by gene (in one pipeline) ----
+per_condition_summary <- meta[counts, on = "sample_id"
+][, .(mean_count = mean(count)), by = .(gene, condition)]
+View(per_condition_summary)
+View(summary_gene)
+View(filtered)
+source("~/Task11.R")
+source("~/Task1.R")
+devtools::load_all()
+devtools::install()
+devtools::load_all()
+source("~/benchmark_tasks.R")
+file.exists("/home/rstudio/benchmark_tasks.R")
+View(benchmark_summary)
+View(benchmark_summary)
+source("~/benchmark_tasks.R")
+# ---- Optional: Plot automatically ----
+library(ggplot2)
+ggplot(benchmark_summary, aes(x = reorder(task, speed_ratio), y = speed_ratio)) +
+geom_col(fill = "steelblue") +
+coord_flip() +
+geom_hline(yintercept = 1, linetype = "dashed", color = "red") +
+labs(
+title = "Speed Comparison: data.frame vs data.table",
+x = "Task",
+y = "Speed ratio (data.frame / data.table)"
+) +
+theme_minimal(base_size = 13)
+# ---- Combine results ----
+benchmark_summary <- do.call(rbind, benchmark_results)
+row.names(benchmark_summary) <- NULL
+# ---- Compute speed ratio ----
+library(dplyr)
+library(tidyr)
+# Pivot wide to have both methods in separate columns
+benchmark_summary <- benchmark_summary |>
+tidyr::pivot_wider(names_from = method, values_from = mean_ms) |>
+dplyr::mutate(speed_ratio = data.frame / data.table)
+print(benchmark_summary[, c("task", "data.table", "data.frame", "speed_ratio")])
+source("~/benchmark_tasks.R")
+View(benchmark_results)
+View(benchmark_summary)
+?source
+source("../../benchmark_tasks.R")
+wd()
+??wd
+source("benchmark_tasks.R")
+getwd()
+source(../"benchmark_tasks.R")
+source("../benchmark_tasks.R")
+bench <- benchmark_results()
+View(benchmark_results)
+View(benchmark_summary)
+View(benchmark_summary)
+View(benchmark_summary)
+### Benchmark — data.table vs data.frame
+source("../../benchmark_tasks.R")
+getwd()
+# ---- Load data ----
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster  <- fread("~/workspace/nt_combined_clustering.output.csv")
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster,  tolower(trimws(names(nt_cluster))))
+View(integration)
+View(nt_cluster)
+# ---- Merge ----
+merged <- merge(integration, nt_cluster, by = "cell", all.x = TRUE)
+View(merged)
+source("~/functionshelp/R/finaltask_function_dt.R")
+View(final_task_dt)
+View(final_task_dt)
+#' final_task_dt — Associate cell types to integration clusters (data.table)
+#'
+#' This function merges Seurat integration results with cell type annotations
+#' and summarizes the number and proportion of cells of each type
+#' per integration cluster and tissue type (Normal/Tumor).
+#'
+#' @return data.table with columns:
+#' integration_cluster, sample_type, cell_type, n_cells, prop
+#' @export
+final_task_dt <- function() {
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster  <- fread("~/workspace/nt_combined_clustering.output.csv")
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster,  tolower(trimws(names(nt_cluster))))
+# ---- Detect the cell ID column ----
+cell_col <- intersect(names(integration), names(nt_cluster))[1]
+if (is.na(cell_col)) stop("❌ No matching cell ID column found between files.")
+message("✅ Matching by cell column: ", cell_col)
+# ---- Merge ----
+merged <- merge(integration, nt_cluster, by = cell_col, all.x = TRUE)
+# Rename typical metadata columns if needed
+if ("orig.ident" %in% names(merged) && !"sample_type" %in% names(merged))
+setnames(merged, "orig.ident", "sample_type")
+if ("predicted_celltype" %in% names(merged) && !"cell_type" %in% names(merged))
+setnames(merged, "predicted_celltype", "cell_type")
+# ---- Summarize ----
+summary_counts <- merged[, .N, by = .(integration_cluster, sample_type, cell_type)]
+setnames(summary_counts, "N", "n_cells")
+# ---- Proportions ----
+summary_counts[, prop := n_cells / sum(n_cells), by = integration_cluster]
+# ---- Sort ----
+setorder(summary_counts, integration_cluster, -n_cells)
+return(summary_counts)
+}
+source("R/Functionsdatatable.R")
+res <- final_task_dt()
+head(res)
+source("R/Functionsdatatable.R")
+res <- final_task_dt()
+head(res)
+source("~/functionshelp/R/finaltask_function_dt.R")
+source("~/functionshelp/R/finaltask_function_dt.R")
+View(res)
+source("~/functionshelp/R/finaltask_function_dt.R")
+View(res)
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster,  tolower(trimws(names(nt_cluster))))
+#' final_task_dt — Associate cell types to integration clusters (data.table)
+#'
+#' This function merges Seurat integration results with cell type annotations
+#' and summarizes the number and proportion of cells of each type
+#' per integration cluster and tissue type (Normal/Tumor).
+#'
+#' @return data.table with columns:
+#' integration_cluster, sample_type, cell_type, n_cells, prop
+#' @export
+final_task_dt <- function() {
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster  <- fread("~/workspace/nt_combined_clustering.output.csv")
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster,  tolower(trimws(names(nt_cluster))))
+print(names(integration))
+print(names(nt_cluster))
+# ---- Detect the cell ID column ----
+cell_col <- intersect(names(integration), names(nt_cluster))[1]
+if (is.na(cell_col)) stop("❌ No matching cell ID column found between files.")
+message("✅ Matching by cell column: ", cell_col)
+# ---- Merge ----
+merged <- merge(integration, nt_cluster, by = cell_col, all.x = TRUE)
+# Rename typical metadata columns if needed
+if ("orig.ident" %in% names(merged) && !"sample_type" %in% names(merged))
+setnames(merged, "orig.ident", "sample_type")
+if ("predicted_celltype" %in% names(merged) && !"cell_type" %in% names(merged))
+setnames(merged, "predicted_celltype", "cell_type")
+# ---- Summarize ----
+summary_counts <- merged[, .N, by = .(integration_cluster, sample_type, cell_type)]
+setnames(summary_counts, "N", "n_cells")
+# ---- Proportions ----
+summary_counts[, prop := n_cells / sum(n_cells), by = integration_cluster]
+# ---- Sort ----
+setorder(summary_counts, integration_cluster, -n_cells)
+return(summary_counts)
+}
+View(res)
+source("~/functionshelp/R/finaltask_function_dt.R")
+#' final_task_dt — Associate cell types to integration clusters (data.table)
+#'
+#' This function merges Seurat integration results with cell type annotations
+#' and summarizes the number and proportion of cells of each type
+#' per integration cluster and tissue type (Normal/Tumor).
+#'
+#' @return data.table with columns:
+#' integration_cluster, sample_type, cell_type, n_cells, prop
+#' @export
+final_task_dt <- function()
+{
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster <- fread("~/workspace/nt_combined_clustering.output.csv")
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster, tolower(trimws(names(nt_cluster))))
+print(names(integration))
+print(names(nt_cluster))
+# ---- Merge ----
+merged <- merge(integration, nt_cluster, by = "cell", all.x = TRUE)
+# ---- Summarize counts ----
+summary_counts <- merged[, .N, by = .(integration_cluster, sample_type, cell_type)]
+setnames(summary_counts, "N", "n_cells")
+# ---- Add proportions per cluster ----
+summary_counts[, prop := n_cells / sum(n_cells), by = integration_cluster]
+# ---- Sort for readability ----
+setorder(summary_counts, integration_cluster, -n_cells)
+return(summary_counts)
+}
+source("~/functionshelp/R/finaltask_function_dt.R")
+rm(list = ls())
+source("~/functionshelp/R/finaltask_function_dt.R")
+library(data.table)
+print("Integration Columns:")
+print(names(integration))
+View(final_task_dt)
+rm(list = ls())
+source("~/functionshelp/R/finaltask_function_dt.R")
+final_task_dt()
+res <- final_task_dt()
+head(res, 10)
+View(final_task_dt)
+#' final_task_dt — Associate cell types to integration clusters (data.table)
+#'
+#' This function merges Seurat integration results with cell type annotations
+#' and summarizes the number and proportion of cells of each type
+#' per integration cluster and tissue type (Normal/Tumor).
+#'
+#' @return data.table with columns:
+#' integration_cluster, sample_type, cell_type, n_cells, prop
+#' @export
+final_task_dt <- function()
+{
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster <- fread("~/workspace/nt_combined_clustering.output.csv")
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster, tolower(trimws(names(nt_cluster))))
+# ---- Debug Print ----
+#print("Integration Columns:")
+#print(names(integration))
+#print("NT Cluster Columns:")
+#print(names(nt_cluster))
+#return(invisible(NULL))
+# ---- Merge ----
+merged <- merge(integration, nt_cluster, by = "cell", all.x = TRUE)
+# ---- Summarize counts ----
+summary_counts <- merged[, .N, by = .(integration_cluster, sample_type, cell_type)]
+setnames(summary_counts, "N", "n_cells")
+# ---- Add proportions per cluster ----
+summary_counts[, prop := n_cells / sum(n_cells), by = integration_cluster]
+# ---- Sort for readability ----
+setorder(summary_counts, integration_cluster, -n_cells)
+return(summary_counts)
+}
+view(summary_counts)
+#' final_task_dt — Associate cell types to integration clusters (data.table)
+#'
+#' This function merges Seurat integration results with cell type annotations
+#' and summarizes the number and proportion of cells of each type
+#' per integration cluster and tissue type (Normal/Tumor).
+#'
+#' @return data.table with columns:
+#' integration_cluster, sample_type, cell_type, n_cells, prop
+#' @export
+final_task_dt <- function()
+{
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster <- fread("~/workspace/nt_combined_clustering.output.csv")
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster, tolower(trimws(names(nt_cluster))))
+# ---- Debug Print ----
+#print("Integration Columns:")
+#print(names(integration))
+#print("NT Cluster Columns:")
+#print(names(nt_cluster))
+#return(invisible(NULL))
+# ---- Merge ----
+merged <- merge(integration, nt_cluster, by = "cell", all.x = TRUE)
+# ---- Summarize counts ----
+summary_counts <- merged[, .N, by = .(integration_cluster, sample_type, cell_type)]
+setnames(summary_counts, "N", "n_cells")
+# ---- Add proportions per cluster ----
+summary_counts[, prop := n_cells / sum(n_cells), by = integration_cluster]
+# ---- Sort for readability ----
+setorder(summary_counts, integration_cluster, -n_cells)
+return(summary_counts)
+}
+source("~/functionshelp/R/finaltask_function_dt.R")
+#' final_task_dt — Associate cell types to integration clusters (data.table)
+#'
+#' This function merges Seurat integration results with cell type annotations
+#' and summarizes the number and proportion of cells of each type
+#' per integration cluster and tissue type (Normal/Tumor).
+#'
+#' @return data.table with columns:
+#' integration_cluster, sample_type, cell_type, n_cells, prop
+#' @export
+final_task_dt <- function()
+{
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster <- fread("~/workspace/nt_combined_clustering.output.csv")
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster, tolower(trimws(names(nt_cluster))))
+# ---- Remove possible sample prefixes before merge ----
+integration[, cell := sub(".*_", "", cell)]
+nt_cluster[, cell := sub(".*_", "", cell)]
+# ---- Merge ----
+merged <- merge(integration, nt_cluster, by = "cell", all.x = TRUE)
+# ---- Summarize counts ----
+summary_counts <- merged[, .N, by = .(integration_cluster, sample_type, cell_type)]
+setnames(summary_counts, "N", "n_cells")
+# ---- Add proportions per cluster ----
+summary_counts[, prop := n_cells / sum(n_cells), by = integration_cluster]
+# ---- Sort for readability ----
+setorder(summary_counts, integration_cluster, -n_cells)
+return(summary_counts)
+}
+#' final_task_dt — Associate cell types to integration clusters (data.table)
+#'
+#' This function merges Seurat integration results with cell type annotations
+#' and summarizes the number and proportion of cells of each type
+#' per integration cluster and tissue type (Normal/Tumor).
+#'
+#' @return data.table with columns:
+#' integration_cluster, sample_type, cell_type, n_cells, prop
+#' @export
+final_task_dt <- function()
+{
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster <- fread("~/workspace/nt_combined_clustering.output.csv")
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster, tolower(trimws(names(nt_cluster))))
+# ---- Remove possible sample prefixes before merge ----
+integration[, cell := sub(".*_", "", cell)]
+nt_cluster[, cell := sub(".*_", "", cell)]
+# ---- Merge ----
+merged <- merge(integration, nt_cluster, by = "cell", all.x = TRUE)
+# ---- Summarize counts ----
+summary_counts <- merged[, .N, by = .(integration_cluster, sample_type, cell_type)]
+setnames(summary_counts, "N", "n_cells")
+# ---- Add proportions per cluster ----
+summary_counts[, prop := n_cells / sum(n_cells), by = integration_cluster]
+# ---- Sort for readability ----
+setorder(summary_counts, integration_cluster, -n_cells)
+return(summary_counts)
+}
+View(final_task_dt)
+length(intersect(integration$cell, nt_cluster$cell))
+#' final_task_dt — Associate cell types to integration clusters (data.table)
+#'
+#' This function merges Seurat integration results with cell type annotations
+#' and summarizes the number and proportion of cells of each type
+#' per integration cluster and tissue type (Normal/Tumor).
+#'
+#' @return data.table with columns:
+#' integration_cluster, sample_type, cell_type, n_cells, prop
+#' @export
+final_task_dt <- function()
+{
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster <- fread("~/workspace/nt_combined_clustering.output.csv")
+# ---- Standardize column names ----
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster, tolower(trimws(names(nt_cluster))))
+# ---- Remove possible sample prefixes before merge ----
+integration[, cell := sub(".*_", "", cell)]
+nt_cluster[, cell := sub(".*_", "", cell)]
+# ---- Merge ----
+merged <- merge(integration, nt_cluster, by = "cell", all.x = TRUE)
+# ---- Summarize counts ----
+summary_counts <- merged[, .N, by = .(integration_cluster, sample_type, cell_type)]
+setnames(summary_counts, "N", "n_cells")
+# ---- Add proportions per cluster ----
+summary_counts[, prop := n_cells / sum(n_cells), by = integration_cluster]
+# ---- Sort for readability ----
+setorder(summary_counts, integration_cluster, -n_cells)
+return(summary_counts)
+}
+# Sample 20 cell IDs from each file
+head(integration$cell, 20)
+library(data.table)
+integration <- fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv")
+nt_cluster  <- fread("~/workspace/nt_combined_clustering.output.csv")
+# Standardize column names like in your function
+setnames(integration, tolower(trimws(names(integration))))
+setnames(nt_cluster,  tolower(trimws(names(nt_cluster))))
+# Sample 20 cell IDs from each file
+head(integration$cell, 20)
+head(nt_cluster$cell, 20)
+# Count exact matches between the two files
+length(intersect(integration$cell, nt_cluster$cell))
+head(integration$cell, 10)
+head(nt_cluster$cell, 10)
+integration[, cell_clean := gsub("-1$", "", cell)]
+nt_cluster[, cell_clean := gsub("-1$", "", cell)]
+integration[, cell_clean := tolower(cell_clean)]
+nt_cluster[, cell_clean := tolower(cell_clean)]
+length(intersect(integration$cell_clean, nt_cluster$cell_clean))
+# Standardize IDs
+integration[, cell_clean := gsub("_X_", "", cell)]
+nt_cluster[, cell_clean := cell]   # nt already clean
+# Ensure lowercase just in case
+integration[, cell_clean := tolower(cell_clean)]
+nt_cluster[, cell_clean := tolower(cell_clean)]
+# check match
+length(intersect(integration$cell_clean, nt_cluster$cell_clean))
+?task3_join_and_index
+git init
+git init
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+counts <- fread("~/workspace/bulk_counts_long.csv")
+meta   <- fread("~/workspace/sample_metadata.csv")
+# ---- Standardize column names ----
+setnames(counts, tolower(trimws(names(counts))))
+setnames(meta,   tolower(trimws(names(meta))))
+# ---- 1️⃣ Filter: keep only treated samples and genes starting with "GENE_00" ----
+filtered <- counts[grepl("^GENE_00", gene)]
+# Join to get condition info
+setkey(meta, sample_id)
+filtered <- meta[filtered, on = "sample_id"]
+filtered <- filtered[condition == "treated"]
+# ---- 2️⃣ Compute mean and median count by gene ----
+summary_gene <- filtered[, .(
+mean_count   = mean(count),
+median_count = median(count)
+), by = gene]
+# ---- 3️⃣ Join metadata and compute per-condition mean counts by gene (in one pipeline) ----
+per_condition_summary <- meta[counts, on = "sample_id"
+][, .(mean_count = mean(count)), by = .(gene, condition)]
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+counts <- as.data.frame(fread("~/workspace/bulk_counts_long.csv"))
+meta   <- as.data.frame(fread("~/workspace/sample_metadata.csv"))
+# ---- Standardize column names ----
+names(counts) <- tolower(trimws(names(counts)))
+names(meta)   <- tolower(trimws(names(meta)))
+# ---- 1️⃣ Filter: keep only treated samples and genes starting with "GENE_00" ----
+filtered <- subset(counts, grepl("^GENE_00", gene))
+# Join metadata (same direction as data.table: meta[filtered, on="sample_id"])
+filtered <- merge(meta, filtered, by = "sample_id", all.y = TRUE)
+# Keep only treated samples
+filtered <- subset(filtered, condition == "treated")
+# ---- 2️⃣ Compute mean and median count by gene ----
+summary_gene <- aggregate(filtered$count,
+by = list(gene = filtered$gene),
+FUN = function(x) c(mean = mean(x), median = median(x)))
+summary_gene <- data.frame(
+gene = summary_gene$gene,
+mean_count = summary_gene$x[, "mean"],
+median_count = summary_gene$x[, "median"]
+)
+# ---- 3️⃣ Join metadata and compute per-condition mean counts by gene ----
+merged <- merge(meta, counts, by = "sample_id", all.y = TRUE)
+per_condition_summary <- aggregate(merged$count,
+by = list(gene = merged$gene, condition = merged$condition),
+FUN = mean)
+names(per_condition_summary)[3] <- "mean_count"
+# ---- Output preview ----
+cat("\n✅ Summary of treated GENE_00 genes:\n")
+print(head(summary_gene))
+cat("\n✅ Per-condition mean counts by gene:\n")
+print(head(per_condition_summary))
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+counts <- fread("~/workspace/bulk_counts_long.csv")
+# ---- Standardize column names ----
+setnames(counts, tolower(trimws(names(counts))))
+# ---- 1️⃣ Add log2(count) column ----
+# Add a small offset (e.g. +1) to avoid log(0) errors
+counts[, log2_count := log2(count + 1)]
+# ---- 2️⃣ Add a binary flag 'high' if count > 100 ----
+counts[, high := count > 100]
+# ---- 3️⃣ Overwrite 'high' to use a gene-wise threshold ----
+# For each gene, compute its median count, then mark high if above that median
+counts[, high := count > median(count), by = gene]
+# ---- Output preview ----
+cat("✅ Added derived columns:\n")
+print(head(counts))
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+peaks <- fread("~/workspace/atac_peaks.bed.csv")
+# ---- Standardize column names ----
+setnames(peaks, tolower(trimws(names(peaks))))
+# ---- Filter: peaks on chr2 with start between 2–4 Mb ----
+filtered <- peaks[chr == "chr2" & start >= 2e6 & start <= 4e6]
+# ---- Order by descending score and select top 50 ----
+setorder(filtered, -score)
+top50 <- filtered[1:50]
+# ---- Output preview ----
+print(head(top50))
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+labs   <- fread("~/workspace/clinical_labs.csv")
+vitals <- fread("~/workspace/vitals_time_series.csv")
+# ---- Standardize column names ----
+setnames(labs,   tolower(trimws(names(labs))))
+setnames(vitals, tolower(trimws(names(vitals))))
+# Rename 'time_iso' to 'time'
+setnames(labs,   "time_iso", "time")
+setnames(vitals, "time_iso", "time")
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+peaks <- fread("~/workspace/atac_peaks.bed.csv")
+genes <- fread("~/workspace/gene_annotation.bed.csv")
+# ---- Standardize column names ----
+setnames(peaks, tolower(trimws(names(peaks))))
+setnames(genes, tolower(trimws(names(genes))))
+# ---- Key by chromosome and coordinates ----
+setkey(peaks, chr, start, end)
+setkey(genes, chr, start, end)
