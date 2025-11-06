@@ -78,3 +78,44 @@ git push
 git add .
 git commit -m "Modifica RMD"
 git push origin master
+cd ~/functionhelp
+cd ~/functionshelp
+git status
+git add .
+git commit -m "Update scripts and documentation"
+git push
+git add ../.
+git rev-parse --show-toplevel
+cd /home/rstudio
+git init
+git add .
+git commit -m "Aggiunta Scripts"
+git remote add origin <https://github.com/gregoriobenetti-dotcom/Bioinformatics-Project>
+git remote add origin https://github.com/gregoriobenetti-dotcom/Bioinformatics-Project.git
+git branch -M master
+git push -u origin master
+git branch -M main
+git push -u origin main
+git init
+git add.
+git add .
+git commit -m "Final Upload"
+git remote add origin https://github.com/gregoriobenetti-dotcom/Bioinformatics-Project.git
+git branch -M main
+git push -u origin main --force
+cd /home/rstudio/functionshelp
+ls -a
+cd ..
+rm -rf /home/rstudio/functionshelp/.git
+git add .
+git commit -m "functionshelp fix"
+git push
+cd /home/rstudio/functionshelp
+ls -a
+cd ..
+git rm -f functionshelp
+rm -rf .git/modules/functionshelp
+ls functionshelp
+git add functionshelp
+git commit -m "functionshelp fix 2"
+git push --force

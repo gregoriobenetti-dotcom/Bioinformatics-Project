@@ -1,5 +1,4 @@
 .GlobalEnv
-package:data.table
 tools:rstudio
 package:stats
 package:graphics

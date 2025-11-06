@@ -1,16 +1,3 @@
-), by = gene]
-# ---- 3️⃣ Join metadata and compute per-condition mean counts by gene (in one pipeline) ----
-per_condition_summary <- meta[counts, on = "sample_id"
-][, .(mean_count = mean(count)), by = .(gene, condition)]
-View(per_condition_summary)
-View(summary_gene)
-View(filtered)
-source("~/Task11.R")
-source("~/Task1.R")
-devtools::load_all()
-devtools::install()
-devtools::load_all()
-source("~/benchmark_tasks.R")
 file.exists("/home/rstudio/benchmark_tasks.R")
 View(benchmark_summary)
 View(benchmark_summary)
@@ -510,3 +497,16 @@ setnames(genes, tolower(trimws(names(genes))))
 # ---- Key by chromosome and coordinates ----
 setkey(peaks, chr, start, end)
 setkey(genes, chr, start, end)
+getwd()
+suppressPackageStartupMessages(library(data.table))
+# ---- Load data ----
+integration <- as.data.frame(fread("~/workspace/annotated_GSM3516673_normal_annotated_GSM3516672_tumor_SeuratIntegration.csv"))
+nt_cluster  <- as.data.frame(fread("~/workspace/nt_combined_clustering.output.csv"))
+# ---- Standardize column names ----
+names(integration) <- tolower(trimws(names(integration)))
+names(nt_cluster)  <- tolower(trimws(names(nt_cluster)))
+source("~/benchmark_tasks.R")
+source("~/Tasks /benchmark_tasks.R")
+getwd()
+git rev-parse --show-toplevel
+source("~/functionshelp/R/Functionsdatatable.R")

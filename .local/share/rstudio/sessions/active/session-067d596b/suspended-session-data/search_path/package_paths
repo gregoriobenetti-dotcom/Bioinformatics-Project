@@ -1,4 +1,3 @@
-data.table="/usr/local/lib/R/site-library/data.table"
 datasets="/usr/local/lib/R/library/datasets"
 grDevices="/usr/local/lib/R/library/grDevices"
 graphics="/usr/local/lib/R/library/graphics"

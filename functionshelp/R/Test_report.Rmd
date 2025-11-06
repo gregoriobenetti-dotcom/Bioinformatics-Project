@@ -16,8 +16,8 @@ In the final part I also propose some alternatives to use in order to analyze an
 ## Load The Functions
 
 ```{r}
-source("R/Functionsdatatable.R") 
-source("R/finaltask_function_dt.R")
+source("~/functionshelp/R/Functionsdatatable.R") 
+source("~/functionshelp/R/finaltask_function_dt.R")
 ```
 
 # 🧩 TASK 1:
@@ -226,7 +226,7 @@ It compares the performances for each tast in data.table and data.frame, calcula
 
 ```{r , echo=TRUE, results='hide',warning = FALSE}
 ### Benchmark — data.table vs data.frame
-source("../benchmark_tasks.R")
+source("Tasks /benchmark_tasks.R")
 ```
 
 ```{r}
@@ -253,4 +253,4 @@ ggplot(benchmark_summary, aes(x = reorder(task, speed_ratio), y = speed_ratio)) 
 
 # ❇️ Conclusions
 
-To clude, the project is done in 'data.frame', which is base R, and 'data.table', and as we can see from the Benchmark results 'data.table' is faster than 'data.frame'. However there are other possibilities to work on these data, one of them is 'tidyverse' (dplyr), that allows highly readable syntax for data cleaning and visualization. Otherwise 'Arrow' and 'DuckB' allow SQL-style queries and are suitable for single-cell profiles.  
+To clude, the project is done in 'data.frame', which is base R, and 'data.table', and as we can see from the Benchmark results 'data.table' is faster than 'data.frame'. However there are other possibilities to work on these data, one of them is 'tidyverse' (dplyr), that allows highly readable syntax for data cleaning and visualization. Otherwise 'Arrow' and 'DuckB' allow SQL-style queries and are suitable for single-cell profiles.

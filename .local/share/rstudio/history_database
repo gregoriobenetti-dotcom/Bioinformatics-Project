@@ -5192,3 +5192,228 @@
 1762448844875:source("~/Tasks /benchmark_tasks.R")
 1762449133687:getwd()
 1762449198699:git rev-parse --show-toplevel
+1762451990184:source("~/functionshelp/R/Functionsdatatable.R")
+1762452586789:#' Task 1 — Filter and summarize bulk counts
+1762452586790:#'
+1762452586790:#' Loads bulk RNA counts and metadata, filters treated samples,
+1762452586791:#' and computes mean/median per gene and per condition.
+1762452586791:#' @return A list of two data.tables: per-gene and per-condition summaries.
+1762452586791:#' @export
+1762452586792:task1_filter_counts <- function() {
+1762452586792:suppressPackageStartupMessages(library(data.table))
+1762452586793:# ---- Load data ----
+1762452586793:counts <- fread("~/workspace/bulk_counts_long.csv")
+1762452586793:meta   <- fread("~/workspace/sample_metadata.csv")
+1762452586794:# ---- Standardize column names ----
+1762452586794:setnames(counts, tolower(trimws(names(counts))))
+1762452586794:setnames(meta,   tolower(trimws(names(meta))))
+1762452586794:#trim spaces and lowercase all column names
+1762452586795:# ---- Filter genes ----
+1762452586795:filtered <- counts[grepl("^GENE_00", gene)]
+1762452586796:#keeps genes whose name starts with GENE_00
+1762452586796:# ---- Merge metadata to add condition info ----
+1762452586796:filtered <- merge(filtered, meta, by = "sample_id", all.x = TRUE)
+1762452586797:# Keep treated only
+1762452586797:filtered <- filtered[condition == "treated"]
+1762452586798:# ---- Mean and median count by gene ----
+1762452586798:summary_gene <- filtered[, .(
+1762452586798:mean_count = mean(count),
+1762452586798:median_count = median(count)
+1762452586799:), by = gene]
+1762452586799:#in summary gene creates the median and mean of the counts
+1762452586800:# ---- Per-condition mean count ----
+1762452586800:merged <- merge(counts, meta, by = "sample_id", all.x = TRUE)
+1762452586801:per_condition_summary <- merged[, .(
+1762452586802:mean_count = mean(count)
+1762452586802:), by = .(gene, condition)]
+1762452586803:# ---- Return ----
+1762452586804:list(
+1762452586805:filtered = filtered, #filtered treated samples
+1762452586805:summary_gene = summary_gene, #mean/median per gene
+1762452586806:per_condition_summary = per_condition_summary # mean count per gene and condition
+1762452586806:)
+1762452586806:}
+1762452587369:#' Task 2 — Add QC-style columns
+1762452587369:#'
+1762452587370:#' Loads bulk counts, adds log2-transformed counts and flags high values.
+1762452587370:#' @return A data.table with log2_count and high flag columns.
+1762452587370:#' @export
+1762452587371:task2_add_qc_flags <- function() {
+1762452587371:suppressPackageStartupMessages(library(data.table))
+1762452587372:# ---- Load Data ----
+1762452587372:counts <- fread("~/workspace/bulk_counts_long.csv")
+1762452587373:# ---- Trim spaces and lowercase all names (standard column names) ----
+1762452587373:setnames(counts, tolower(trimws(names(counts))))
+1762452587374:counts[, log2_count := log2(count + 1)] # new log2 count column
+1762452587374:counts[, high := count > median(count), by = gene] # flag 'high' for counts above the median
+1762452587375:return(counts) # table with extra columns
+1762452587376:}
+1762452587985:task3_join_and_index <- function() {
+1762452587986:suppressPackageStartupMessages(library(data.table))
+1762452587987:# ---- Load data ----
+1762452587987:meta   <- fread("~/workspace/sample_metadata.csv")
+1762452587988:counts <- fread("~/workspace/bulk_counts_long.csv")
+1762452587988:# ---- Trims and lower case ----
+1762452587989:setnames(meta, tolower(trimws(names(meta))))
+1762452587989:setnames(counts, tolower(trimws(names(counts))))
+1762452587990:# ---- Joins metadata and count data by sample_id ----
+1762452587990:setkey(meta, sample_id)
+1762452587990:joined <- meta[counts, on = "sample_id"]
+1762452587991:# ---- Pick one gene + sample to test lookup ----
+1762452587991:gene_to_test <- joined$gene[1]
+1762452587992:sample_to_test <- joined$sample_id[1]
+1762452587992:# ----Benchmark before index ----
+1762452587992:time_before <- system.time({
+1762452587993:res_before <- joined[gene == gene_to_test & sample_id == sample_to_test]
+1762452587993:})
+1762452587993:# ---- Add secondary index ----
+1762452587994:setindex(joined, gene, sample_id)
+1762452587994:# ---- Benchmark after index ----
+1762452587995:time_after <- system.time({
+1762452587995:res_after <- joined[gene == gene_to_test & sample_id == sample_to_test]
+1762452587996:})
+1762452587997:# ---- Return only small useful output ----
+1762452587997:list(
+1762452587998:preview = head(joined, 10),
+1762452587998:benchmark = data.frame(
+1762452587998:stage = c("before_index", "after_index"),
+1762452587999:user_time = c(time_before["user.self"], time_after["user.self"])
+1762452587999:)
+1762452588000:)
+1762452588000:}
+1762452588500:#' Task 4 — Annotate counts with patient info
+1762452588500:#'
+1762452588501:#' Merges metadata into counts, computes totals and top genes.
+1762452588501:#' @return A list of two data.tables: patient_totals and top_genes.
+1762452588501:#' @export
+1762452588502:task4_annotate_counts <- function() {
+1762452588502:suppressPackageStartupMessages(library(data.table))
+1762452588503:# ---- Load Data ----
+1762452588503:meta   <- fread("~/workspace/sample_metadata.csv")
+1762452588504:counts <- fread("~/workspace/bulk_counts_long.csv")
+1762452588504:# ---- Trims & Lower Case ----
+1762452588505:setnames(meta, tolower(trimws(names(meta))))
+1762452588505:setnames(counts, tolower(trimws(names(counts))))
+1762452588506:# ---- Adds metadata columns to counts ----
+1762452588506:setkey(meta, sample_id)
+1762452588507:joined <- meta[counts, on = "sample_id"] #merges meta onto counts
+1762452588507:patient_totals <- joined[, .(total_count = sum(count)), by = patient_id] #sums count per patient
+1762452588508:top_genes <- joined[, .(avg_count = mean(count)), by = .(condition, gene)
+1762452588508:][order(condition, -avg_count), head(.SD, 10), by = condition] #finds 10 top genes
+1762452588509:return(list(patient_totals = patient_totals, top_genes = top_genes)) # total counts per patient and top genes by average count
+1762452588509:}
+1762452588971:#' Task 5 — Classify labs as normal or out_of_range
+1762452588971:#'
+1762452588972:#' Classifies lab values based on reference ranges and computes abnormal rates.
+1762452588972:#' @return A list with abnormal rates by patient and by lab.
+1762452588972:#' @export
+1762452588973:task5_classify_labs <- function() {
+1762452588973:suppressPackageStartupMessages(library(data.table))
+1762452588974:# ---- Load Data ----
+1762452588974:labs   <- fread("~/workspace/clinical_labs.csv")
+1762452588975:ranges <- fread("~/workspace/lab_reference_ranges.csv")
+1762452588976:# ---- Trim & Lower case ----
+1762452588976:setnames(labs,   tolower(trimws(names(labs))))
+1762452588976:setnames(ranges, tolower(trimws(names(ranges))))
+1762452588977:# ---- Row selection and classification ----
+1762452588977:setkey(ranges, lab)
+1762452588977:classified <- ranges[labs, on = .(lab, lower <= value, upper >= value), nomatch = 0L]
+1762452588978:classified[, status := ifelse(!is.na(lower), "normal", "out_of_range")]
+1762452588978:#joins lab results and reference and labels values
+1762452588979:out_all <- merge(labs, classified, all.x = TRUE)
+1762452588979:out_all[is.na(status), status := "out_of_range"]
+1762452588980:abnormal_rates_patient <- out_all[, .(abnormal_rate = mean(status == "out_of_range")), by = patient_id]
+1762452588980:abnormal_rates_lab     <- out_all[, .(abnormal_rate = mean(status == "out_of_range")), by = lab]
+1762452588980:#abnormal rate per patient and per lab test
+1762452588981:return(list(patient = abnormal_rates_patient, lab = abnormal_rates_lab))
+1762452588981:}
+1762452589433:#' Task 6 — Match labs to nearest vitals
+1762452589434:#'
+1762452589434:#' Finds the nearest heart rate and SBP values for each lab draw.
+1762452589435:#' @return Correlation summary between CRP and vitals per patient.
+1762452589435:#' @export
+1762452589435:task6_match_labs_vitals <- function() {
+1762452589436:suppressPackageStartupMessages(library(data.table))
+1762452589437:# ---- Load Data ----
+1762452589437:labs   <- fread("~/workspace/clinical_labs.csv")
+1762452589437:vitals <- fread("~/workspace/vitals_time_series.csv")
+1762452589438:# ---- Name Adjustments ----
+1762452589438:setnames(labs, tolower(trimws(names(labs))))
+1762452589439:setnames(vitals, tolower(trimws(names(vitals))))
+1762452589439:setnames(labs, "time_iso", "time")
+1762452589440:setnames(vitals, "time_iso", "time")
+1762452589440:# ---- Makes timestamps comparable ----
+1762452589441:labs[, time := as.POSIXct(time, tz = "UTC")]
+1762452589441:vitals[, time := as.POSIXct(time, tz = "UTC")]
+1762452589442:vitals_sub <- vitals[vital %in% c("HR", "SBP")]
+1762452589442:hr  <- vitals_sub[vital == "HR",  .(patient_id, time, HR = value)]
+1762452589442:sbp <- vitals_sub[vital == "SBP", .(patient_id, time, SBP = value)]
+1762452589443:setkey(hr, patient_id, time)
+1762452589443:setkey(sbp, patient_id, time)
+1762452589444:setkey(labs, patient_id, time)
+1762452589444:labs_hr  <- hr[labs,  roll = "nearest"]
+1762452589445:labs_sbp <- sbp[labs, roll = "nearest"]
+1762452589446:merged <- merge(
+1762452589446:labs_hr[, .(patient_id, time, lab, value, HR, time_HR = time)],
+1762452589447:labs_sbp[, .(patient_id, time, SBP, time_SBP = time)],
+1762452589447:by = c("patient_id", "time"),
+1762452589448:all.x = TRUE
+1762452589448:)
+1762452589449:corr_summary <- merged[lab == "CRP",
+1762452589449:.(cor_HR = cor(value, HR, use = "pairwise.complete.obs"),
+1762452589450:cor_SBP = cor(value, SBP, use = "pairwise.complete.obs")),
+1762452589450:by = patient_id]
+1762452589451:return(corr_summary)
+1762452589452:}
+1762452590036:#' Task 7 — Filter genomic peaks
+1762452590037:#' @return Top 50 peaks on chr2 between 2–4 Mb by score.
+1762452590037:#' @export
+1762452590037:task7_filter_genomic_peaks <- function() {
+1762452590038:suppressPackageStartupMessages(library(data.table))
+1762452590039:# ---- Load Data ----
+1762452590039:peaks <- fread("~/workspace/atac_peaks.bed.csv")
+1762452590040:setnames(peaks, tolower(trimws(names(peaks))))
+1762452590040:# ---- Region Selection ----
+1762452590041:filtered <- peaks[chr == "chr2" & start >= 2e6 & start <= 4e6]
+1762452590041:# ---- Sort by Score ----
+1762452590042:setorder(filtered, -score)
+1762452590042:return(filtered[1:50])
+1762452590043:}
+1762452590702:#' Task 8 — Summarize gene stats
+1762452590703:#' @return Data.table of summary statistics for genes.
+1762452590703:#' @export
+1762452590703:task8_summarize_gene_stats <- function() {
+1762452590704:suppressPackageStartupMessages(library(data.table))
+1762452590705:# ---- Load Data ----
+1762452590705:counts <- fread("~/workspace/bulk_counts_long.csv")
+1762452590705:meta   <- fread("~/workspace/sample_metadata.csv")
+1762452590706:# ---- Trim & Lowercase ----
+1762452590706:setnames(counts, tolower(trimws(names(counts))))
+1762452590707:setnames(meta,   tolower(trimws(names(meta))))
+1762452590707:setkey(meta, sample_id)
+1762452590708:dt <- meta[counts, on = "sample_id"]
+1762452590708:# ---- CAlculates mean median and quartiles of expression ----
+1762452590709:summ_stats <- dt[, .(
+1762452590709:mean   = mean(count),
+1762452590709:median = median(count),
+1762452590710:q1     = quantile(count, 0.25),
+1762452590710:q3     = quantile(count, 0.75)
+1762452590710:), by = .(gene, condition)]
+1762452590711:# ---- Selects genes where treated mean >= 2x ----
+1762452590711:wide <- dcast(summ_stats, gene ~ condition, value.var = "mean")
+1762452590712:filtered_genes <- wide[treated >= 2 * control, gene] # Keeps genes with >= 2x mean in treated
+1762452590712:result <- summ_stats[gene %in% filtered_genes]
+1762452590713:return(result)
+1762452590713:}
+1762452610452:source("~/Tasks /Task1.R")
+1762452614719:suppressPackageStartupMessages(library(data.table))
+1762452615151:# ---- Load data ----
+1762452615152:counts <- fread("~/workspace/bulk_counts_long.csv")
+1762452766103:source("~/Tasks /Task1.R")
+1762453078055:getwd()
+1762453337318:list.files("Tasks")
+1762453346104:getwd()
+1762453349034:list.files("Tasks")
+1762453379454:source("Tasks/benchmark_tasks.R")
+1762453402044:list.files()
+1762453440990:source("~/Tasks /benchmark_tasks.R")

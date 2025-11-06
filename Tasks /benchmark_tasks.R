@@ -15,10 +15,10 @@ suppressPackageStartupMessages({
 
 # --- Auto-load all functions if not already available ---
 if (!exists("task1_filter_counts")) {
-  if (file.exists("R/Functionsdatatable.R")) source("R/Functionsdatatable.R")
+  if (file.exists("~/functionshelp/R/Functionsdatatable.R")) source("~/functionshelp/R/Functionsdatatable.R")
 }
 if (!exists("task1_df_filter_counts")) {
-  if (file.exists("R/Functionsdataframe.R")) source("R/Functionsdataframe.R")
+  if (file.exists("~/functionshelp/R/Functionsdataframe.R")) source("~/functionshelp/R/Functionsdataframe.R")
 }
 
 # --- Helper: list available function names ---
