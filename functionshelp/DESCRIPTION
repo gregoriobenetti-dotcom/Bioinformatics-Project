@@ -1,0 +1,13 @@
+Package: functionshelp
+Title: Bioinformatics Project
+Version: 0.0.0.9000
+Authors@R: Benetti Gregorio
+Description: Compare data.frame and data.table performance in resolving data analysis tasks 
+License: 
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

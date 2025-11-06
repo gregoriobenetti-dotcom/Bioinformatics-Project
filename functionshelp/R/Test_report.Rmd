@@ -1,0 +1,256 @@
+---
+title: "R Markdown Project"
+author: "Benetti Gregorio"
+date: "04/11/2025"
+output: html_document
+---
+
+# Project Description
+
+Given a set of data, the project focuses on resolving 12 tasks + a final one using 'data.table' and 'data.frame' base structure. They are both R base data structures used to analyze data, but data.table has a faster reading of data and faster operations with them. Indeed the project presents also a BenchMark comparison of the two approaches to observe which of the two is faster in analyzing the data-set. Benchmarking means running two or more scripts that perform the same task to compare their rapidity, the results of this analysis in my project demonstrate that data.table is faster in resolving the tasks.
+
+The whole set of functions is charged inside a container of a Docker, so that the analysis that I have performed and the scripts are re-usable by other users with different data but with the same purpose. Docker allows to share analysis sets and make them easily accessible for other users, this is particularly useful in biology since the analysis of big data is more and more common and being able to share them makes them not only re-usable but also allows their analysis by peer reviewers or any others that would like to give a look at our study. Moreover Docker runs through an image, in this case Rocker has allowed to avoid installing R in my computer, which is another advantage of using a docker.
+
+In the final part I also propose some alternatives to use in order to analyze and resolve the tasks besides 'data.table' and 'data.frame'.
+
+## Load The Functions
+
+```{r}
+source("R/Functionsdatatable.R") 
+source("R/finaltask_function_dt.R")
+```
+
+# 🧩 TASK 1:
+
+## Filter and summarize bulk counts
+
+Starting from a list of gene counts and the metadata information about each sample, the function filters keeping genes that start with "GENE_00" and correspond to the condition "treated". Then it groups by gene and calculates the mean and median counts per gene. After that it goes back to the metadata and counts the average count per each gene condition.
+
+▶️ Input: bulk expression counts + sample metadata
+
+▶️ Output: mean & median expression for filtered treated genes and per-condition gene means
+
+```{r}
+res1 <- task1_filter_counts()
+
+filtered <- res1$filtered
+summary_gene <- res1$summary_gene
+per_condition_summary <- res1$per_condition_summary
+
+knitr::kable(head(filtered, 5))
+knitr::kable(head(summary_gene, 5))
+knitr::kable(head(per_condition_summary, 5))
+```
+
+# 🧩 TASK 2:
+
+### Add QC-style columns
+
+The function adds more columns, one corresponds to the log2(count+1) to compress large values and make them easy to compare, the +1 avoids errors in counts that equal 0. Another column corresponds to a TRUE/FALSE separation, dividing those genes that have a score \> 100. Finally it counts the median for each gene and flags those that are above the median.
+
+▶️ Input: bulk expression counts
+
+▶️ Output: same table + log2 expression column + binary high-expression flag
+
+```{r}
+res2 <- task2_add_qc_flags()
+knitr::kable(head(res2, 5))
+```
+
+# 🧩 TASK 3:
+
+### Speed up joins/lookups
+
+Merges bulk gene counts with sample metadata and it benchmarks the query before and after idexing, to prove that data.table keys and indices optimize joins and filter operations for large datasets.
+
+▶️ Input: bulk expression counts + sample metadata
+
+▶️ Output: joined dataset + validated index speed improvement (no returned summary table)
+
+```{r}
+res3 <- task3_join_and_index()
+knitr::kable(head(res3, 10))
+```
+
+# 🧩 TASK 4:
+
+### Annotate counts with sample and patient info
+
+Attaches patient and condition metadata to expression values and calculates per-patient and per-condition summary statistics. It shows the sample-to-patient data integration and grouping in data.table.
+
+▶️ Input: bulk counts + sample metadatas
+
+▶️ Output: patient-level total counts and top genes per condition
+
+```{r}
+res4 <- task4_annotate_counts()
+knitr::kable(head(res4, 10))
+```
+
+# 🧩 TASK 5:
+
+### Classify lab results using reference intervals
+
+After loading clinical data and reference ranges it compares each patient lab value to clinically-defined reference ranges and assigns a label ("normal" or "out-of-range") per test. It computes abnormality rates per patient and per test. With this function you can see which patients have more abnormal results and which testst are more often out of range.
+
+▶️ Input: clinical lab values + reference ranges
+
+▶️ Output: labs labeled normal vs out-of-range + abnormal-rate summaries per patient and per test
+
+```{r}
+res5 <- task5_classify_labs()
+knitr::kable(head(res5, 10))
+```
+
+# 🧩 TASK 6:
+
+### Match vitals to lab draws
+
+Links each lab measurement to the nearest heart-rate and blood-pressure values in time, then evaluates correlations with CRP.
+
+▶️ Input: lab results + vital sign measurements
+
+▶️ Output: labs matched to nearest HR/SBP + per-patient CRP-vitals correlations
+
+```{r}
+res6 <- task6_match_labs_vitals()
+knitr::kable(head(res6, 10))
+```
+
+# 🧩 TASK 7:
+
+### Slice genomic windows efficiently
+
+Filters ATAC-seq peak regions by chromosome and genomic range, ranks them by peak score and extracts the top peaks. By choosing chromosome 2 you zoom in the selected region and hihlight the strongest peaks.
+
+▶️ Input:ATAC-seq peak regions
+
+▶️ Output: top high-scoring peaks within chr2:2--4 Mb window
+
+```{r}
+res7 <- task7_filter_genomic_peaks()
+knitr::kable(head(res7, 10))
+```
+
+# 🧩 TASK 8:
+
+### Multi-column summaries per group
+
+Computes statistical summaries (mean, median, quartiles) for each gene across different sample conditions and selects genes with strong treatment effects, by choosing those that have a treated mean \>/= 2x control mean. So you get those genes that are the most upregulated in treated samples.
+
+▶️ Input: bulk counts + sample metadata
+
+▶️ Output: genes with mean/median/Q1/Q3 counts & genes with ≥2× treated vs control expression
+
+```{r}
+res8 <- task8_summarize_gene_stats()
+knitr::kable(head(res8, 10))
+```
+
+# 🧩 TASK 9:
+
+### Reshape counts wide→long→wide
+
+This function converts a wide expression matrix into long format, adds sample metadata, computes condition-level means, and reshapes back to wide format. It shows efficient pivoting, column creation, and group summarization. As a result you transform the data flexibly and the output can be used for expression heatmaps or bar plots.
+
+▶️ Input:wide expression matrix
+
+▶️ Output:long format summary + wide table of mean treated vs control expression
+
+```{r}
+res9 <- task9_reshape_counts()
+knitr::kable(head(res9, 10))
+```
+
+# 🧩 TASK 10:
+
+### Map ATAC peaks to genes
+
+The function finds overalps between genes and ATAC-seq peaks, it matches them and ranks the genes by total chromatin accessibility. Finding genes that have most open chromatin reagions allows to identify possible regulatory regions.
+
+▶️ Input: ATAC peaks + gene coordinates
+
+▶️ Output: genes ranked by total ATAC overlap (bp) and peak count
+
+```{r}
+res10 <- task10_map_peaks_to_genes()
+knitr::kable(head(res10, 10))
+```
+
+# 🧩 TASK 11:
+
+### Map variants to genes
+
+The function finds and matches overlaps between genes and genetic variants (SNPs), it filters for high-impact variants and finds those genes that are hit by hgh impact SNPS.
+
+▶️ Input: variant table + gene coordinates
+
+▶️ Output: counts of high-impact variants per gene per sample + genes mutated in all samples
+
+```{r}
+res11 <- task11_map_snps()
+knitr::kable(head(res11, 10))
+```
+
+# 🧩 TASK 12:
+
+### Combine cohorts
+
+This function merges data from multiple cohorts and joins expression data identifying the most varibale genes across cohorts and summarizes expressions per cohorts and conditions. It demonstrates efficient dataset merging and variance-based gene filtering. In this way you can get an overview of how gene expression differs between cohorts and treatments.
+
+▶️ Input: cohort metadata A+B + bulk counts
+
+▶️ Output: expression summary of top-variance genes per cohort × condition
+
+```{r}
+res12 <- task12_combine_cohorts()
+knitr::kable(head(res12, 10))
+```
+
+# 🧩 Final TASK
+
+This function merges integrated single-cell clustering data with predicted cell types, computes proportions of each cell type per cluster, and stratifies results by tumor vs normal tissue. It highlights cell-type aggregation and frequency analysis
+
+▶️ Input: integration clusters + predicted cell types
+
+▶️ Output: cell-type proportions per cluster split by tumor vs normal tissue
+
+```{r}
+res_final <- final_task_dt()
+knitr::kable(head(res_final, 10))
+```
+
+# 📊 Benchmark Comparison
+
+It compares the performances for each tast in data.table and data.frame, calculates the time of performance, the ratio, and generates a plot of it. Those tasts that have a ratio \> 1 indicate that data.table is faster, since the ratio is done between the absolute time in seconds, if data.frame/data.table is \>1 means that data.frame time is \> than data.table time.
+
+```{r , echo=TRUE, results='hide',warning = FALSE}
+### Benchmark — data.table vs data.frame
+source("../benchmark_tasks.R")
+```
+
+```{r}
+# Preview first rows
+knitr::kable(benchmark_summary, caption = "Benchmark summary")
+```
+
+# 🏁 Speed Comparison Plot
+
+```{r}
+library(ggplot2)
+
+ggplot(benchmark_summary, aes(x = reorder(task, speed_ratio), y = speed_ratio)) +
+  geom_col() +
+  coord_flip() +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "red") +
+  labs(
+    title = "Speed Comparison: data.frame vs data.table",
+    x = "Task",
+    y = "Speed ratio (data.frame / data.table)"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+# ❇️ Conclusions
+
+To clude, the project is done in 'data.frame', which is base R, and 'data.table', and as we can see from the Benchmark results 'data.table' is faster than 'data.frame'. However there are other possibilities to work on these data, one of them is 'tidyverse' (dplyr), that allows highly readable syntax for data cleaning and visualization. Otherwise 'Arrow' and 'DuckB' allow SQL-style queries and are suitable for single-cell profiles.  

@@ -1,0 +1,123 @@
+---
+title: "R Markdown Test"
+author: "Benetti Gregorio"
+date: "`r Sys.Date()`"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, results='asis'}
+# ==========================================================
+# Load custom functions (absolute paths)
+# ==========================================================
+source("/home/rstudio/functionshelp/R/Functionsdatatable.R")
+source("/home/rstudio/functionshelp/R/Functionsdataframe.R")
+source("/home/rstudio/functionshelp/R/finaltask_function_dt.R")
+source("/home/rstudio/functionshelp/R/finaltask_function_df.R")
+
+# Small helper: show only first rows of each result
+show_preview <- function(x, n = 5) {
+  print(utils::head(x, n))
+}
+
+# ==========================================================
+# 🧩 TASK 1
+# ==========================================================
+cat("\n### Task 1: Filter Counts\n")
+show_preview(task1_filter_counts())
+show_preview(task1_df_filter_counts())
+
+# ==========================================================
+# 🧩 TASK 2
+# ==========================================================
+cat("\n### Task 2: Add QC Flags\n")
+show_preview(task2_add_qc_flags())
+show_preview(task2_df_add_qc_flags())
+
+# ==========================================================
+# 🧩 TASK 3
+# ==========================================================
+cat("\n### Task 3: Join and Index\n")
+show_preview(task3_join_and_index())
+show_preview(task3_df_join_and_index())
+
+# ==========================================================
+# 🧩 TASK 4
+# ==========================================================
+cat("\n### Task 4: Annotate Counts\n")
+show_preview(task4_annotate_counts())
+show_preview(task4_df_annotate_counts())
+
+# ==========================================================
+# 🧩 TASK 5
+# ==========================================================
+cat("\n### Task 5: Classify Labs\n")
+show_preview(task5_classify_labs())
+show_preview(task5_df_classify_labs())
+
+# ==========================================================
+# 🧩 TASK 6
+# ==========================================================
+cat("\n### Task 6: Match Labs and Vitals\n")
+show_preview(task6_match_labs_vitals())
+show_preview(task6_df_match_labs_vitals())
+
+# ==========================================================
+# 🧩 TASK 7
+# ==========================================================
+cat("\n### Task 7: Filter Genomic Peaks\n")
+show_preview(task7_filter_genomic_peaks())
+show_preview(task7_df_filter_genomic_peaks())
+
+# ==========================================================
+# 🧩 TASK 8
+# ==========================================================
+cat("\n### Task 8: Summarize Gene Stats\n")
+show_preview(task8_summarize_gene_stats())
+show_preview(task8_df_summarize_gene_stats())
+
+# ==========================================================
+# 🧩 TASK 9
+# ==========================================================
+cat("\n### Task 9: Reshape Counts\n")
+show_preview(task9_reshape_counts())
+show_preview(task9_df_reshape_counts())
+
+# ==========================================================
+# 🧩 TASK 10
+# ==========================================================
+cat("\n### Task 10: Map Peaks to Genes\n")
+show_preview(task10_map_peaks_to_genes())
+show_preview(task10_df_map_peaks_to_genes())
+
+# ==========================================================
+# 🧩 TASK 11
+# ==========================================================
+cat("\n### Task 11: Map Variants to Genes\n")
+show_preview(task11_map_snps())
+show_preview(task11_df_map_snps())
+
+# ==========================================================
+# 🧩 TASK 12
+# ==========================================================
+cat("\n### Task 12: Combine Cohorts\n")
+show_preview(task12_combine_cohorts())
+show_preview(task12_df_combine_cohorts())
+
+# ==========================================================
+# 🧩 Final TASK
+# ==========================================================
+#cat("\n### Final Task\n")
+#show_preview(final_task_dt())
+#show_preview(final_task_df())
+
+```{r run-benchmarks, echo=TRUE, message=TRUE}
+source("../../benchmark_function.R")
+
+benchmark_summary <- run_benchmarks(times = 5L, plot = TRUE)
+
+knitr::kable(benchmark_summary, digits = 2,
+             caption = "Benchmark Summary: mean execution time (ms)")
+

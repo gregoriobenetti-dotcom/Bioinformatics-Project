@@ -1,0 +1,85 @@
+---
+title: "Using the functionshelp Package"
+author: "Benetti Gregorio"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{using_functionshelp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(functionshelp)
+```
+
+dt1 <- task1_filter_counts()
+df1 <- task1_df_filter_counts()
+print(head(dt1))
+print(head(df1))
+
+dt2 <- task2_add_qc_flags()
+df2 <- task2_df_add_qc_columns()
+print(head(dt2))
+print(head(df2))
+
+dt3 <- task3_join_and_index()
+df3 <- task3_df_join_metadata()
+print(head(dt3))
+print(head(df3))
+
+dt4 <- task4_annotate_counts()
+df4 <- task4_df_annotate_counts()
+print(head(dt4))
+print(head(df4))
+
+dt5 <- task5_classify_labs()
+df5 <- task5_df_classify_labs()
+print(head(dt5))
+print(head(df5))
+
+dt6 <- task6_match_labs_vitals()
+df6 <- task6_df_nearest_vitals()
+print(head(dt6))
+print(head(df6))
+
+dt7 <- task7_filter_genomic_peaks()
+df7 <- task7_df_slice_peaks()
+print(head(dt7))
+print(head(df7))
+
+dt8 <- task8_summarize_gene_stats()
+df8 <- task8_df_summary_stats()
+print(head(dt8))
+print(head(df8))
+
+dt9 <- task9_reshape_counts()
+df9 <- task9_df_reshape_counts()
+print(head(dt9))
+print(head(df9))
+
+dt10 <- task10_map_peaks_to_genes()
+df10 <- task10_df_map_peaks()
+print(head(dt10))
+print(head(df10))
+
+dt11 <- task11_map_variants_to_genes()
+df11 <- task11_df_map_snps()
+print(head(dt11))
+print(head(df11))
+
+dt12 <- task12_combine_cohorts()
+df12 <- task12_df_combine_cohorts()
+print(head(dt12))
+print(head(df12))
+
+
+
+
+
